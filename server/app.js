@@ -10,7 +10,7 @@ app.use(cors());
 //handle requests
 app.get("/",(req,res)=>
 {
-    return res.send("res").status(200);
+    return res.send("server replied {Result}").status(200);
 })
 
 app.use("/api/auth",userRouter);
