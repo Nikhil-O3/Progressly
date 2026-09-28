@@ -2,89 +2,98 @@ import bcrypt from "bcryptjs"
 import User from "../models/userSchema.js"
 import jwt from "jsonwebtoken"
 
-export const registerUser = async(req,res)=>
-{
-    const email=req.body.email;
-    const password=req.body.password;
-    const fullName=req.body.fullName;
 
-    if(!email || !password || !fullName)
-    {
+
+export const registerUser = async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    const fullName = req.body.fullName;
+
+    if (!email || !password || !fullName) {
         return res.sendStatus(400);
     }
     //check for duplicate email
     //check for strong password 
-    const isUsed = await User.findOne({email:email});
+    const isUsed = await User.findOne({ email: email });
 
-    if(isUsed){
+    if (isUsed) {
         return res.status(409).json({
             success: false,
             message: "Email already exists"
-    });}
+        });
+    }
 
-    try{
+    try {
 
-        const hashedpass= await bcrypt.hash(password,12);
+        const hashedpass = await bcrypt.hash(password, 12);
 
         const newUser = await User.create({
-        email,                                      //shorthand e:e to e since both are same words
-        password : hashedpass,
-        name : fullName
+            email,                                      //shorthand e:e to e since both are same words
+            password: hashedpass,
+            name: fullName
 
-        
-    })
 
-    return res.sendStatus(201);
-    //redirect to login
+        })
+
+        return res.sendStatus(201);
+        //redirect to login
 
     }
 
-    catch(err)
-    {
+    catch (err) {
         console.log(err);
         return res.sendStatus(500);
     }
 
-    
+
 }
 
 
-export const loginUser = async(req,res)=>//check for already logged in
-
+export const loginUser = async (req, res) =>//check for already logged in
 {//create token here and pass it 
-    const email=req.body.email;
-    const password=req.body.password;
-   
+    const email = req.body.email;
+    const password = req.body.password;
 
-    if(!email || !password)
-    {
+
+    if (!email || !password) {
         return res.sendStatus(400);
     }
-    
 
-    try{
-        const curruser=await User.findOne({email:email});
-        if(!curruser)return res.status(401).json({
-            success:false,
-            error:"email not registered or incorrect gmail input"
+
+    try {
+        const curruser = await User.findOne({ email: email });
+        if (!curruser) return res.status(401).json({
+            success: false,
+            error: "email not registered or incorrect gmail input"
         });
 
-        const passMatch=await bcrypt.compare(password,curruser.password);
+        const passMatch = await bcrypt.compare(password, curruser.password);
 
-        if(!passMatch)return res.status(401).json(
+        if (!passMatch) return res.status(401).json(
             {
-                success:false,
-                error:"wrong password"
+                success: false,
+                error: "wrong password"
             }
         )
 
-        return res.status(200).json({
-            success:true,
-            message:"login successfull"
-        })
+        const token = jwt.sign(
+            { userId: curruser._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
 
-    }catch(e)
-    {
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+                 sameSite: "strict",
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            success: true,
+              message: "login successful"
+        });
+    } catch (e) {
         return res.status(500).json({
             success: false,
             error: "Internal server error"
@@ -93,14 +102,19 @@ export const loginUser = async(req,res)=>//check for already logged in
 }
 
 
-export const logoutUser = async(req,res)=>
-{
+export const logoutUser = async (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    });
 
-}
+    return res.status(200).json({
+        success: true,
+        message: "Logout successful"
+    });
+};
 
 
-export const userData = async(req,res)=>
-{
 
-}
 
