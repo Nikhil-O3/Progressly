@@ -1,7 +1,12 @@
 {
-  "name": "progresstracker",
-  "private": true,
+  "name": "progressly",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "npm --prefix server run dev"
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

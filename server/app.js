@@ -1,30 +1,27 @@
-import express from "express"
-import cors from "cors";//to handle development operation calls between node and react.
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
-import cors from "cors"
-import cookieParser from "cookie-parser";
+import metricRouter from './routes/metricRoutes.js';
+import profileRouter from './routes/profileRoutes.js';
+import userSocialRouter from './routes/userSocialRoutes.js';
 
 const app = express();
 
-
-// app.use(cors({
-//   origin: "http://localhost:5173"
-// }))
-
-
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
-app.use(cors());
 app.use(cookieParser());
 
+app.get("/", (req, res) => res.json({ message: "Progressly API running" }));
 
-//handle requests
-app.get("/",(req,res)=>
-{
-    return res.send("server replied {Result}").status(200);
-})
-
-app.use("/api/auth",authRouter);
-app.use("/api/me",userRouter)
+app.use("/api/auth", authRouter);
+app.use("/api/me", userRouter);
+app.use("/api/metrics", metricRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/users", userSocialRouter);
 
 export default app;
